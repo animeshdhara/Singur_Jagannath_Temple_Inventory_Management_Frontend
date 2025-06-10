@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './App.css'
+import MiniDrawer from './components/sidebar'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -7,7 +8,7 @@ function App() {
   return (
     <>
       <div>
-        <h1 className=' bg-red-700 font-bold'>Hare Krishna</h1>
+        <MiniDrawer/>
       </div>
     </>
   )
