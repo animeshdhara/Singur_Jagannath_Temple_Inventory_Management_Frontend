@@ -1,15 +1,17 @@
 import { useState } from 'react'
 import './App.css'
-import MiniDrawer from './components/sidebar'
+import SideBar from './components/sidebar'
+import NavBar from './components/navbar'
+import MainLayout from './components/mainLayout'
 
 function App() {
   const [count, setCount] = useState(0)
 
   return (
     <>
-      <div>
-        <MiniDrawer/>
-      </div>
+      <MainLayout>
+        
+      </MainLayout>
     </>
   )
 }
