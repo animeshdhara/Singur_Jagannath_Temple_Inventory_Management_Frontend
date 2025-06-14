@@ -24,6 +24,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import ReceiptIcon from '@mui/icons-material/Receipt';
+import LeaderboardIcon from '@mui/icons-material/Leaderboard';
 
 const drawerWidth = 240;
 
@@ -155,6 +156,9 @@ export default function SideBar() {
                   ]}
                 >
                   {index === 0 && <AddIcon/>}
+                  {index === 1 && <EditIcon/>}
+                  {index === 2 && <DeleteIcon/>}
+                  {index === 3 && <InventoryIcon/>}
                 </ListItemIcon>
                 <ListItemText
                   primary={text}
@@ -172,7 +176,7 @@ export default function SideBar() {
             </ListItem>
           ))}
         </List>
-        {/* <Divider /> */}
+        <Divider />
         <List>
           {['Show Bill', 'Show Reveneu'].map((text, index) => (
             <ListItem key={text} disablePadding sx={{ display: 'block' }}>
@@ -206,7 +210,8 @@ export default function SideBar() {
                         },
                   ]}
                 >
-                  {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
+                  {index === 0 && <ReceiptIcon/>}
+                  {index === 1 && <LeaderboardIcon/>}
                 </ListItemIcon>
                 <ListItemText
                   primary={text}
@@ -225,12 +230,6 @@ export default function SideBar() {
           ))}
         </List>
       </Drawer>
-      {/* <Box component="main" sx={{ flexGrow: 1, p: 3 }}> */}
-        {/* <DrawerHeader /> */}
-        
-        {/* Different contents will be placed here*/}
-
-      {/* </Box> */}
     </Box>
   );
 }

@@ -40,3 +40,37 @@
 .read-the-docs {
   color: #888;
 } */
+@media print {
+  @page {
+    size: 100mm auto;
+    margin: 0;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background: white;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  #printable-area,
+  #printable-area * {
+    visibility: visible !important;
+  }
+
+  #printable-area {
+    position: static !important; /* Override absolute */
+    margin: 0 auto !important;   /* Center horizontally */
+    width: 100mm !important;
+    background: white !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    justify-content: space-evenly !important;
+    align-items: center !important;
+  }
+}
+

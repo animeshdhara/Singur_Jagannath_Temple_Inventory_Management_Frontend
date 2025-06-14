@@ -1,18 +1,20 @@
-import { useState } from 'react'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
 import './App.css'
-import SideBar from './components/sidebar'
-import NavBar from './components/navbar'
-import MainLayout from './components/mainLayout'
+import MainLayout from './components/mainLayout';
+import GenerateBarcode from './components/generateBarcode';
+import HomePage from './components/homePage';
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <MainLayout>
-        
-      </MainLayout>
-    </>
+    <Router>
+      <Routes>
+        <Route path="/" element={<MainLayout/>}>
+          <Route index element={<HomePage/>} />
+          <Route path="/generate-barcode" element={<GenerateBarcode />} />
+        </Route>
+      </Routes>
+    </Router>
   )
 }
 

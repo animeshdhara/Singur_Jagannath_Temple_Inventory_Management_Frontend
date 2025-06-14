@@ -65,7 +65,7 @@ export default function DropDownMenu() {
   };
 
   return (
-    <div className='absolute right-20'>
+    <div className='absolute right-24'>
       <Button
         id="demo-customized-button"
         aria-controls={open ? 'demo-customized-menu' : undefined}
@@ -75,6 +75,11 @@ export default function DropDownMenu() {
         disableElevation
         onClick={handleClick}
         endIcon={<KeyboardArrowDownIcon />}
+        sx={{
+          backgroundColor: '#0d47a1',
+          color: '#fff',
+          borderRadius:'8px'
+        }}
       >
         Choose Services
       </Button>
