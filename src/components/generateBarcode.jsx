@@ -1,62 +1,79 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import Barcode from 'react-barcode';
-import { Autocomplete, TextField, Button } from '@mui/material';
+import { Button } from '@mui/material';
 import PrintIcon from '@mui/icons-material/Print';
+import ProductInputRow from './productInputRow';
 
 const GenerateBarcode = () => {
-  const barcodeRef = useRef();
+  const [uploadedProducts, setUploadedProducts] = useState([{ name: 'Bhagabad Gita', price: '250' }, { name: 'Japa Mala', price: '60' }, { name: 'Dhoti', price: '500' }]);
+
+
   const [labelsPerRow, setLabelsPerRow] = useState(3);// default value for 3 labels.
   const [products, setProducts] = useState([
     { barcode: '', name: '', price: '' },
     { barcode: '', name: '', price: '' },
     { barcode: '', name: '', price: '' },
   ]);
-  const barcodeLength = 12; // 12 digit barcode.
   const [barcodes, setBarcodes] = useState([]);
 
-  const [width, setWidth] = useState(1);
+  const [width, setWidth] = useState(0.8);
   const [height, setHeight] = useState(25);
   const [barcodeFontSize, setBarcodeFontSize] = useState(10);// for 3 labels
+  const [labelChange, setLabelChange] = useState(false);
+
+
 
   const handleLabelChange = (e) => {
+    setLabelChange(!labelChange);
+
     const count = parseInt(e.target.value);
     setLabelsPerRow(count);
-    setProducts(Array.from({ length: count }, () => ({
+    setProducts(Array.from({
+      length: count,
+    }, () => ({
       barcode: '',
       name: '',
       price: '',
-    })));
-
-    setWidth(width === 1 ? 1.5 : 1);
+    })))
+    setWidth(width === 0.8 ? 1.5 : 0.8);
     setHeight(height === 25 ? 30 : 25);
     setBarcodeFontSize(barcodeFontSize === 10 ? 12 : 10);
     setBarcodes([]);
   };
 
-  const handleInputChange = (index, field, value) => {
-    const updated = [...products];
-    updated[index][field] = value;
-    setProducts(updated);
-    const newBaarcodes = [...barcodes];
-    if (field === 'barcode' && value.length === barcodeLength) {
-      newBaarcodes.push(value);
-      setBarcodes(newBaarcodes);
-    }
+
+
+  const handleAddProduct = (idx, product) => {
+    console.log("selected product: ", product);
+    //Updating products 
+    const updatedProduct = [...products];
+    updatedProduct[idx] = product;
+    setProducts(updatedProduct);
+
+    //Updating the barcodes 
+    const updatedBarcodes = [...barcodes];
+    updatedBarcodes.push(product.barcode);
+    setBarcodes(updatedBarcodes);
+
   };
 
-  const uploadedProducts = [{ name: 'rice', price: '40' }, { name: 'dal', price: '20' }];
-  const setSelectedProduct = (index, value) => {
-    console.log('selected product', value);
-
+  const handleEditProduct = (idx, product) => {
     const updated = [...products];
-    updated[index]['name'] = value.name;
-    updated[index]['price'] = value.price;
-
-    console.log('new product list:', updated);
-
+    updated[idx] = product;
     setProducts(updated);
 
+    const updatedBarcode = [...barcodes];
+    updatedBarcode[idx] = product.barcode;
+    setBarcodes(updatedBarcode);
+
+
+    setTimeout(() => {
+      console.log("product : ",products);
+      console.log("barcode : ",barcodes);
+      
+    }, 2000);
   }
+
 
   const handleBarcodePrint = () => {
     console.log('printing barcode');
@@ -67,10 +84,8 @@ const GenerateBarcode = () => {
     <div>
       <div className="p-4">
 
-
         <div className="w-full flex flex-col items-center h-32 border rounded-md">
-          {/* <h2 className="text-lg font-bold font-serif mb-4 text-center">Barcode Preview</h2> */}
-          <div className='print-section w-[100mm] bg-gray-200 flex flex-nowrap justify-evenly items-center mb-2 print:static print:mx-auto print:bg-white 
+          <div className='print-section w-[100mm] bg-gray-400 flex flex-nowrap justify-evenly items-center mb-2 print:static print:mx-auto print:bg-white 
                 print:flex print:flex-col print:items-center print:justify-center' id='printable-area'>
             {barcodes.map((code, index) => (
               <Barcode
@@ -99,61 +114,20 @@ const GenerateBarcode = () => {
             </select>
           </div>
 
-          <div className='flex flex-col '>
+          <div className='flex flex-col'>
             {products.map((item, idx) => (
-              <div
-                key={idx}
-                className="mb-4 flex gap-3"
-              >
-                <p className="font-semibold mb-2 w-1/6 pt-2">Product {idx + 1}</p>
-                <input
-                  placeholder="Barcode"
-                  value={item.barcode}
-                  onChange={(e) => handleInputChange(idx, 'barcode', e.target.value)}
-                  className="w-2/6 border mb-2 rounded p-2"
-                  maxLength={barcodeLength}
-                />
-                <Autocomplete
-                  options={uploadedProducts}
-                  getOptionLabel={(option) => option.name}
-                  onChange={(e, newValue) => setSelectedProduct(idx, newValue)}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="Select Product"
-                      variant="outlined"
-                      size="small"
-                      sx={{
-                        '& .MuiInputBase-root': {
-                          height: '40px',
-                          width: '200px'
-                        },
-                      }}
-                    />
-                  )}
-                />
-                <input
-                  placeholder="Price"
-                  value={item.price}
-                  onChange={(e) => handleInputChange(idx, 'price', e.target.value)}
-                  className="w-1/6 border mb-2 rounded p-2"
-                  type="number"
-                  readOnly
-                />
+              <div key={idx} className="mb-4 flex gap-3 items-center">
+                <ProductInputRow index={idx} uploadedProducts={uploadedProducts} onAdd={handleAddProduct} onEdit={handleEditProduct} />
               </div>
             ))}
           </div>
+
         </div>
-
-
-
       </div>
       <div className='text-center'>
-
         <Button variant='contained' color='success' onClick={handleBarcodePrint}>
           <PrintIcon className='mr-1' /> Print Barcode
         </Button>
-
       </div>
     </div>
   );
