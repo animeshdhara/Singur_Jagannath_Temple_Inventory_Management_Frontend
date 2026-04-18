@@ -3,11 +3,8 @@ import { styled, alpha } from '@mui/material/styles';
 import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-import EditIcon from '@mui/icons-material/Edit';
 import Divider from '@mui/material/Divider';
 import ArchiveIcon from '@mui/icons-material/Archive';
-import FileCopyIcon from '@mui/icons-material/FileCopy';
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import LocalGroceryStoreIcon from '@mui/icons-material/LocalGroceryStore';
 
@@ -35,42 +32,24 @@ const StyledMenu = styled((props) => (
     '& .MuiMenu-list': {
       padding: '4px 0',
     },
-    '& .MuiMenuItem-root': {
-      '& .MuiSvgIcon-root': {
-        fontSize: 18,
-        color: theme.palette.text.secondary,
-        marginRight: theme.spacing(1.5),
-      },
-      '&:active': {
-        backgroundColor: alpha(
-          theme.palette.primary.main,
-          theme.palette.action.selectedOpacity,
-        ),
-      },
-    },
-    ...theme.applyStyles('dark', {
-      color: theme.palette.grey[300],
-    }),
   },
 }));
 
 export default function DropDownMenu() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
+
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
+
   const handleClose = () => {
     setAnchorEl(null);
   };
 
   return (
-    <div className='absolute right-24'>
+    <>
       <Button
-        id="demo-customized-button"
-        aria-controls={open ? 'demo-customized-menu' : undefined}
-        aria-haspopup="true"
-        aria-expanded={open ? 'true' : undefined}
         variant="contained"
         disableElevation
         onClick={handleClick}
@@ -78,31 +57,31 @@ export default function DropDownMenu() {
         sx={{
           backgroundColor: '#0d47a1',
           color: '#fff',
-          borderRadius:'8px'
+          borderRadius: '8px',
+          '&:hover': {
+            backgroundColor: '#08306b',
+          }
         }}
       >
         Choose Services
       </Button>
+
       <StyledMenu
-        id="demo-customized-menu"
-        slotProps={{
-          list: {
-            'aria-labelledby': 'demo-customized-button',
-          },
-        }}
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
       >
-        <MenuItem onClick={handleClose} disableRipple>
+        <MenuItem onClick={handleClose}>
           <LocalGroceryStoreIcon />
           Grocery
         </MenuItem>
-        <MenuItem onClick={handleClose} disableRipple>
+
+        <MenuItem onClick={handleClose}>
           <ArchiveIcon />
           Paramarthik Store
         </MenuItem>
+
       </StyledMenu>
-    </div>
+    </>
   );
 }

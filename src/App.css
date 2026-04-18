@@ -1,14 +1,15 @@
-
 @media print {
+
   @page {
-    size: 100mm auto;
+    size: auto;
     margin: 0;
   }
 
-  body {
+  html, body {
     margin: 0;
     padding: 0;
     background: white;
+    height: 100%;
   }
 
   body * {
@@ -21,17 +22,21 @@
   }
 
   #printable-area {
-    position: static !important; 
-    top: 0;
-    left: 0;
-    margin: 0 auto !important;   
-    width: 100mm !important;
+    margin: 0 1mm !important;
+    position: absolute !important;
+    left: 50% !important;
+    top: 10mm !important;
+    transform: translateX(-50%) !important;
+
+    /* width removed */
     background: white !important;
+
     display: flex !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
-    justify-content: space-evenly !important;
+    justify-content: center !important;
     align-items: center !important;
+    gap: 4mm !important;
   }
-}
 
+}
