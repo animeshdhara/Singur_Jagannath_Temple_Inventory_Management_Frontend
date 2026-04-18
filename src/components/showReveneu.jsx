@@ -37,11 +37,28 @@ function ShowReveneu() {
     try {
       setLoading(true)
       const res = await API.get('/products', { signal: controller.signal })
-      setProducts(res.data)
-    } catch (error) {
-      if (error.name !== 'AbortError') {
-        toast.error('Failed to fetch products')
+      
+      // Check if response explicitly indicates failure
+      if (res.data?.success === false) {
+        console.error('API returned success=false for products')
+        toast.error(res.data?.message || 'Failed to fetch products')
+        return
       }
+      
+      // Handle both array and object response formats
+      const products = Array.isArray(res.data) ? res.data : (res.data?.data || [])
+      setProducts(products)
+    } catch (error) {
+      if (
+        error.name === 'AbortError' ||
+        error.name === 'CanceledError' ||
+        error.code === 'ECONNABORTED' ||
+        error.message === 'canceled'
+      ) return
+
+      console.error('Fetch products error:', error)
+      toast.error(error.response?.data?.message || 'Failed to fetch products')
+
     } finally {
       setLoading(false)
     }

@@ -49,15 +49,38 @@ function ShowStocks() {
     try {
       setLoading(true)
       const res = await API.get('/products', { signal: controller.signal })
-      setProducts(res.data)
-      setFilteredProducts(res.data)
-    } catch (error) {
-      if (error.name !== 'AbortError') {
-        toast.error(error.response?.data?.message || 'Failed to fetch products')
+      
+      // Only show error if response explicitly indicates failure
+      if (res.data?.success === false) {
+        console.error('API returned success=false for products')
+        toast.error(res.data?.message || 'Failed to fetch products')
+        return
       }
-    } finally {
-      setLoading(false)
-    }
+      
+      // Handle array response (direct list of products)
+      if (Array.isArray(res.data)) {
+        setProducts(res.data)
+        setFilteredProducts(res.data)
+      }
+      // Handle object response with data property
+      else if (res.data?.data && Array.isArray(res.data.data)) {
+        setProducts(res.data.data)
+        setFilteredProducts(res.data.data)
+      }
+    } catch (error) {
+    if (
+      error.name === 'AbortError' ||
+      error.name === 'CanceledError' ||
+      error.code === 'ECONNABORTED' ||
+      error.message === 'canceled'
+    ) return
+
+    console.error('Fetch products error:', error)
+    toast.error(error.response?.data?.message || 'Failed to fetch products')
+
+  } finally {
+    setLoading(false)
+  }
   }
 
   const getStockStatus = (stock) => {

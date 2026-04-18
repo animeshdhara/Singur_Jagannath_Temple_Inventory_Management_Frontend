@@ -47,7 +47,23 @@ function HomePage() {
       setLoading(true)
       console.log('HomePage: Fetching products from', API.defaults.baseURL)
       const res = await API.get('/products')
-      const products = res.data
+      
+      // Check if response explicitly indicates failure
+      if (res.data?.success === false) {
+        console.error('HomePage: API returned success=false')
+        toast.error(res.data?.message || 'Failed to load dashboard')
+        return
+      }
+      
+      // Handle both array and object response formats
+      const products = Array.isArray(res.data) ? res.data : (res.data?.data || [])
+      
+      if (!Array.isArray(products)) {
+        console.error('HomePage: Unexpected response format')
+        toast.error('Failed to load dashboard')
+        return
+      }
+      
       console.log('HomePage: ✅ Fetched', products.length, 'products')
 
       // Calculate stats
@@ -66,10 +82,14 @@ function HomePage() {
 
       setLowStockProducts(lowStockProducts.slice(0, 5))
     } catch (error) {
-      if (error.name !== 'AbortError') {
-        console.error('HomePage: Error -', error.message)
-        toast.error('Failed to load dashboard')
+      // Check for various abort/cancel error types
+      if (error.name === 'AbortError' || error.name === 'CanceledError' || error.code === 'ECONNABORTED' || error.message === 'canceled') {
+        // Silently ignore abort errors - component is unmounting or request was cancelled
+        return
       }
+      
+      console.error('HomePage: Error -', error.message)
+      toast.error('Failed to load dashboard')
     } finally {
       setLoading(false)
     }

@@ -35,9 +35,19 @@ function UpdateItem() {
       try {
         setLoading(true)
         const res = await API.get(`/products/${id}`, { signal: controller.signal })
-        setFormData(res.data)
+        
+        // Check if response explicitly indicates failure
+        if (res.data?.success === false) {
+          toast.error(res.data?.message || "Failed to load product")
+          return
+        }
+        
+        // Handle both direct object and wrapped response
+        const product = res.data?.data || res.data
+        setFormData(product)
       } catch (error) {
         if (error.name !== 'AbortError') {
+          console.error('Fetch product error:', error)
           toast.error("Failed to load product")
         }
       } finally {
@@ -61,10 +71,18 @@ function UpdateItem() {
 
     try {
       setSubmitting(true)
-      await API.put(`/products/${id}`, formData)
+      const response = await API.put(`/products/${id}`, formData)
+      
+      // Check if response explicitly indicates failure
+      if (response.data?.success === false) {
+        toast.error(response.data?.message || "Error updating product")
+        return
+      }
+      
       toast.success("Product Updated Successfully")
       navigate('/showStocks')
     } catch (error) {
+      console.error('Update product error:', error)
       toast.error(
         error.response?.data?.message || "Error updating product"
       )

@@ -52,19 +52,46 @@ function DeleteItem() {
   }, [searchTerm, products])
 
   const fetchProducts = async (controller) => {
-    try {
-      setLoading(true)
-      const res = await API.get('/products', { signal: controller.signal })
-      setProducts(res.data)
-      setFilteredProducts(res.data)
-    } catch (error) {
-      if (error.name !== 'AbortError') {
-        toast.error(error.response?.data?.message || 'Failed to fetch products')
-      }
-    } finally {
-      setLoading(false)
+  try {
+    setLoading(true)
+
+    const res = await API.get('/products', {
+      signal: controller?.signal
+    })
+
+    if (res.data?.success === false) {
+      toast.error(res.data?.message || 'Failed to fetch products')
+      return
     }
+
+    const data = Array.isArray(res.data)
+      ? res.data
+      : res.data?.data
+
+    if (Array.isArray(data)) {
+      setProducts(data)
+      setFilteredProducts(data)
+    } else {
+      console.warn('Unexpected response format:', res.data)
+      setProducts([])
+      setFilteredProducts([])
+    }
+
+  } catch (error) {
+    if (
+      error.name === 'AbortError' ||
+      error.name === 'CanceledError' ||
+      error.code === 'ECONNABORTED' ||
+      error.message === 'canceled'
+    ) return
+
+    console.error('Fetch products error:', error)
+    toast.error(error.response?.data?.message || 'Failed to fetch products')
+
+  } finally {
+    setLoading(false)
   }
+}
 
   const handleDeleteClick = (product) => {
     setSelectedProduct(product)
@@ -73,11 +100,23 @@ function DeleteItem() {
 
   const handleConfirmDelete = async () => {
     try {
-      await API.delete(`/products/${selectedProduct._id}`)
-      toast.success('Product deleted successfully')
-      setOpenDialog(false)
-      fetchProducts()
+      const response = await API.delete(`/products/${selectedProduct._id}`)
+      
+      // Check if response has explicit error flag
+      if (response.data?.success === false) {
+        toast.error(response.data?.message || 'Error deleting product')
+        return
+      }
+      
+      if (response.status >= 200 && response.status < 300) {
+        toast.success('Product deleted successfully')
+        setOpenDialog(false)
+        // Fetch products after successful deletion
+        const controller = new AbortController()
+        await fetchProducts(controller)
+      }
     } catch (error) {
+      console.error('Delete error:', error)
       toast.error(error.response?.data?.message || 'Error deleting product')
     }
   }

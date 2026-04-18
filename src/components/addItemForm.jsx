@@ -36,7 +36,14 @@ function AddItemForm() {
 
     try {
       setLoading(true)
-      await API.post("/products", formData)
+      const response = await API.post("/products", formData)
+      
+      // Check if response explicitly indicates failure
+      if (response.data?.success === false) {
+        toast.error(response.data?.message || "Error adding product")
+        return
+      }
+      
       toast.success("Product Added Successfully")
       setFormData({
         barcode: '',
@@ -45,6 +52,7 @@ function AddItemForm() {
         stock: ''
       })
     } catch (error) {
+      console.error('Add product error:', error)
       toast.error(
         error.response?.data?.message || "Error adding product"
       )

@@ -53,21 +53,48 @@ function ShowBill() {
     const fetchProducts = async () => {
       try {
         const res = await API.get('/products', { signal: controller.signal })
-        setProducts(res.data)
-      } catch (error) {
-        if (error.name !== 'AbortError') {
-          toast.error('Failed to load products')
+        
+        // Check if response explicitly indicates failure
+        if (res.data?.success === false) {
+          toast.error(res.data?.message || 'Failed to load products')
+          return
         }
-      }
+        
+        // Handle both array and object response formats
+        const products = Array.isArray(res.data) ? res.data : (res.data?.data || [])
+        setProducts(products)
+      } catch (error) {
+        if (
+          error.name === 'AbortError' ||
+          error.name === 'CanceledError' ||
+          error.code === 'ECONNABORTED' ||
+          error.message === 'canceled'
+        ) return
+
+        console.error('Fetch products error:', error)
+        toast.error(error.response?.data?.message || 'Failed to fetch products')
+      } 
     }
     const fetchBills = async () => {
       try {
         const res = await API.get('/bills')
-        setBills(res.data)
-      } catch (error) {
-        if (error.name !== 'AbortError') {
-          toast.error('Failed to load bills')
+        
+        // Check if response explicitly indicates failure
+        if (res.data?.success === false) {
+          toast.error(res.data?.message || 'Failed to load bills')
+          return
         }
+        
+        // Handle both array and object response formats
+        const bills = Array.isArray(res.data) ? res.data : (res.data?.data || [])
+        setBills(bills)
+      } catch (error) {
+        // Check for various abort/cancel error types
+        if (error.name === 'AbortError' || error.name === 'CanceledError' || error.code === 'ECONNABORTED' || error.message === 'canceled') {
+          return
+        }
+        console.error('Fetch bills error:', error)
+        toast.error('Failed to load bills')
       }
     }
     fetchProducts()
@@ -199,11 +226,26 @@ function ShowBill() {
         total,
         date: new Date()
       }
-      await API.post('/bills', billData)
+      const billRes = await API.post('/bills', billData)
+      
+      // Check if bill creation failed
+      if (billRes.data?.success === false) {
+        toast.error(billRes.data?.message || 'Error creating bill')
+        return
+      }
       
       // Refresh bills list
       const billsRes = await API.get('/bills')
-      setBills(billsRes.data)
+      
+      // Check if fetch bills failed
+      if (billsRes.data?.success === false) {
+        toast.error(billsRes.data?.message || 'Error loading bills')
+        return
+      }
+      
+      // Handle both array and object response formats
+      const bills = Array.isArray(billsRes.data) ? billsRes.data : (billsRes.data?.data || [])
+      setBills(bills)
       
       setOpenFinalBill(false)
       handlePrint()
@@ -215,16 +257,25 @@ function ShowBill() {
       
       toast.success('Bill created successfully!')
     } catch (error) {
+      console.error('Create bill error:', error)
       toast.error(error.response?.data?.message || 'Error creating bill')
     }
   }
 
   const handleDeleteBill = async (billId) => {
     try {
-      await API.delete(`/bills/${billId}`)
+      const response = await API.delete(`/bills/${billId}`)
+      
+      // Check if response explicitly indicates failure
+      if (response.data?.success === false) {
+        toast.error(response.data?.message || 'Error deleting bill')
+        return
+      }
+      
       setBills(bills.filter(bill => bill._id !== billId))
       toast.success('Bill deleted successfully!')
     } catch (error) {
+      console.error('Delete bill error:', error)
       toast.error(error.response?.data?.message || 'Error deleting bill')
     }
   }
