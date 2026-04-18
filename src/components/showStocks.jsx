@@ -226,7 +226,7 @@ function ShowStocks() {
                         variant="contained"
                         size="small"
                         startIcon={<EditIcon />}
-                        onClick={() => navigate(`/updateItem?id=${product._id}`)}
+                        onClick={() => navigate(`/updateItem/${product._id}`)}
                         sx={{
                           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                           textTransform: 'none',

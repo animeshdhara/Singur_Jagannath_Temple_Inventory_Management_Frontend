@@ -39,17 +39,16 @@ function HomePage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const controller = new AbortController()
-    fetchDashboardData(controller)
-    
-    return () => controller.abort()
+    fetchDashboardData()
   }, [])
 
-  const fetchDashboardData = async (controller) => {
+  const fetchDashboardData = async () => {
     try {
       setLoading(true)
-      const res = await API.get('/products', { signal: controller.signal })
+      console.log('HomePage: Fetching products from', API.defaults.baseURL)
+      const res = await API.get('/products')
       const products = res.data
+      console.log('HomePage: ✅ Fetched', products.length, 'products')
 
       // Calculate stats
       const totalProducts = products.length
@@ -68,7 +67,8 @@ function HomePage() {
       setLowStockProducts(lowStockProducts.slice(0, 5))
     } catch (error) {
       if (error.name !== 'AbortError') {
-        toast.error('Failed to load dashboard data')
+        console.error('HomePage: Error -', error.message)
+        toast.error('Failed to load dashboard')
       }
     } finally {
       setLoading(false)

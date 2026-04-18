@@ -21,6 +21,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Tabs,
+  Tab,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -28,6 +30,7 @@ import PrintIcon from '@mui/icons-material/Print'
 import ReceiptIcon from '@mui/icons-material/Receipt'
 import ClearIcon from '@mui/icons-material/Clear'
 import SaveIcon from '@mui/icons-material/Save'
+import HistoryIcon from '@mui/icons-material/History'
 import { useReactToPrint } from 'react-to-print'
 import API from '../services/api'
 import { toast } from 'react-toastify'
@@ -39,6 +42,8 @@ function ShowBill() {
   const [barcodeInput, setBarcodeInput] = useState('')
   const [products, setProducts] = useState([])
   const [openFinalBill, setOpenFinalBill] = useState(false)
+  const [bills, setBills] = useState([])
+  const [tabValue, setTabValue] = useState(0)
   const barcodeInputRef = useRef(null)
   const printRef = useRef()
 
@@ -55,7 +60,18 @@ function ShowBill() {
         }
       }
     }
+    const fetchBills = async () => {
+      try {
+        const res = await API.get('/bills')
+        setBills(res.data)
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          toast.error('Failed to load bills')
+        }
+      }
+    }
     fetchProducts()
+    fetchBills()
     return () => controller.abort()
   }, [])
 
@@ -173,7 +189,7 @@ function ShowBill() {
 
   const handleCreateBill = async () => {
     try {
-      // Save bill to backend (if you have an endpoint)
+      // Save bill to backend
       const billData = {
         customerName,
         customerPhone,
@@ -183,8 +199,11 @@ function ShowBill() {
         total,
         date: new Date()
       }
-      // Uncomment when backend is ready:
-      // await API.post('/bills', billData)
+      await API.post('/bills', billData)
+      
+      // Refresh bills list
+      const billsRes = await API.get('/bills')
+      setBills(billsRes.data)
       
       setOpenFinalBill(false)
       handlePrint()
@@ -196,7 +215,17 @@ function ShowBill() {
       
       toast.success('Bill created successfully!')
     } catch (error) {
-      toast.error('Error creating bill')
+      toast.error(error.response?.data?.message || 'Error creating bill')
+    }
+  }
+
+  const handleDeleteBill = async (billId) => {
+    try {
+      await API.delete(`/bills/${billId}`)
+      setBills(bills.filter(bill => bill._id !== billId))
+      toast.success('Bill deleted successfully!')
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Error deleting bill')
     }
   }
 
@@ -209,15 +238,26 @@ function ShowBill() {
       {/* Header */}
       <Box sx={{ mb: 2 }}>
         <Typography variant="h5" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-          <ReceiptIcon /> Create Bill
+          <ReceiptIcon /> Billing System
         </Typography>
         <Typography variant="body2" color="textSecondary">
-          Scan barcodes to add items - Press Enter to confirm
+          Create bills and manage billing history
         </Typography>
       </Box>
 
-      <Grid container spacing={2} sx={{ flex: 1, overflow: 'auto' }}>
-        {/* Left Column - Scanning & Items */}
+      {/* Tabs */}
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)}>
+          <Tab icon={<ReceiptIcon />} label="Create Bill" />
+          <Tab icon={<HistoryIcon />} label="Bill History" />
+        </Tabs>
+      </Box>
+
+      {/* Create Bill Tab */}
+      {tabValue === 0 && (
+        <>
+          <Grid container spacing={2} sx={{ flex: 1, overflow: 'auto' }}>
+            {/* Left Column - Scanning & Items */}
         <Grid item xs={12} md={7} sx={{ display: 'flex', flexDirection: 'column' }}>
           {/* Barcode Scanner */}
           <Card sx={{ mb: 2, boxShadow: '0 4px 12px rgba(102, 126, 234, 0.15)' }}>
@@ -457,6 +497,68 @@ function ShowBill() {
           Create & Print Bill
         </Button>
       </Box>
+        </>
+      )}
+
+      {/* Bill History Tab */}
+      {tabValue === 1 && (
+        <Card sx={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}>
+          <CardContent>
+            <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+              Bill History
+            </Typography>
+            {bills.length > 0 ? (
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow sx={{ backgroundColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+                      <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Date</TableCell>
+                      <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Customer</TableCell>
+                      <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Items</TableCell>
+                      <TableCell sx={{ color: '#fff', fontWeight: 'bold' }} align="right">Total</TableCell>
+                      <TableCell sx={{ color: '#fff', fontWeight: 'bold' }} align="center">Action</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {bills.map((bill) => (
+                      <TableRow key={bill._id} hover>
+                        <TableCell>
+                          {new Date(bill.date).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          {bill.customerName || 'N/A'}
+                          {bill.customerPhone && (
+                            <Typography variant="caption" display="block" color="textSecondary">
+                              {bill.customerPhone}
+                            </Typography>
+                          )}
+                        </TableCell>
+                        <TableCell>{bill.items?.length || 0} items</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 'bold', color: '#667eea' }}>
+                          ₹{bill.total?.toFixed(2) || '0.00'}
+                        </TableCell>
+                        <TableCell align="center">
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => handleDeleteBill(bill._id)}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            ) : (
+              <Typography color="textSecondary" sx={{ textAlign: 'center', py: 4 }}>
+                No bills found
+              </Typography>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Final Bill Dialog */}
       <Dialog open={openFinalBill} onClose={() => setOpenFinalBill(false)} maxWidth="sm" fullWidth>

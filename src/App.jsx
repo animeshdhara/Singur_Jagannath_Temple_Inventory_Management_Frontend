@@ -33,7 +33,7 @@ function App() {
             <Route index element={<HomePage />} />
             <Route path="/generate-barcode" element={<GenerateBarcode />} />
             <Route path="/addItem" element={<AddItemForm />} />
-            <Route path="/updateItem" element={<UpdateItem />} />
+            <Route path="/updateItem/:id" element={<UpdateItem />} />
             <Route path="/deleteItem" element={<DeleteItem />} />
             <Route path="/showStocks" element={<ShowStocks />} />
             <Route path="/showBill" element={<ShowBill />} />
