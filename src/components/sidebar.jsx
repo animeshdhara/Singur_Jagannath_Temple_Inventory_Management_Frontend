@@ -91,7 +91,6 @@ export default function SideBar({ drawerWidth = 260 }) {
   const sidebarItems = [
     { label: 'Home', path: '/', icon: HomeIcon },
     { label: 'Add Item', path: '/addItem', icon: AddIcon },
-    { label: 'Update Item', path: '/updateItem', icon: EditIcon },
     { label: 'Delete Item', path: '/deleteItem', icon: DeleteIcon },
     { label: 'Show Stocks', path: '/showStocks', icon: InventoryIcon },
   ];

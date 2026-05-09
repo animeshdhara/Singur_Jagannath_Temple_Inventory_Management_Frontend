@@ -35,21 +35,26 @@ function UpdateItem() {
       try {
         setLoading(true)
         const res = await API.get(`/products/${id}`, { signal: controller.signal })
-        
-        // Check if response explicitly indicates failure
-        if (res.data?.success === false) {
-          toast.error(res.data?.message || "Failed to load product")
-          return
-        }
-        
+
         // Handle both direct object and wrapped response
         const product = res.data?.data || res.data
+
+        // Validate that we have product data
+        if (!product || Object.keys(product).length === 0) {
+          toast.error("Product not found")
+          return
+        }
+
         setFormData(product)
       } catch (error) {
-        if (error.name !== 'AbortError') {
-          console.error('Fetch product error:', error)
-          toast.error("Failed to load product")
+        // Check for various abort/cancel error types
+        if (error.name === 'AbortError' || error.name === 'CanceledError' || error.code === 'ECONNABORTED' || error.message === 'canceled') {
+          // Silently ignore abort errors - component is unmounting or request was cancelled
+          return
         }
+
+        console.error('UpdatePage: Error -', error.message)
+        toast.error('Failed to load product')
       } finally {
         setLoading(false)
       }
@@ -72,13 +77,13 @@ function UpdateItem() {
     try {
       setSubmitting(true)
       const response = await API.put(`/products/${id}`, formData)
-      
+
       // Check if response explicitly indicates failure
       if (response.data?.success === false) {
         toast.error(response.data?.message || "Error updating product")
         return
       }
-      
+
       toast.success("Product Updated Successfully")
       navigate('/showStocks')
     } catch (error) {
